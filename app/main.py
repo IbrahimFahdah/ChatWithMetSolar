@@ -129,6 +129,17 @@ def estimate(req: NLRequest):
     # derive number_row from carport_type
     params["number_row"] = 6 if params["carport_type"] in (3, 4) else 3
 
+    # detect which fields Groq defaulted (server-side, not inferred by LLM)
+    DEFAULTS = {
+        "panel_length_mm": 2333,
+        "panel_width_mm": 1134,
+        "panel_power_w": 600,
+        "carport_type": 1,
+    }
+    assumed = [
+        f"{k}={params[k]} (default)" for k, v in DEFAULTS.items() if params.get(k) == v
+    ]
+
     # Step 2: run XGBoost prediction
     try:
         predictions = predict_from_params(params)
@@ -136,10 +147,15 @@ def estimate(req: NLRequest):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
 
     # Step 3: generate friendly response
+    assumed_note = (
+        f"The following values were NOT provided by the user and defaults were used: {', '.join(assumed)}. "
+        f"You MUST mention these assumptions in your response."
+        if assumed else "All values were explicitly provided by the user."
+    )
     context = (
         f"User asked: {req.message}\n"
-        f"Extracted params (defaults used where user did not specify): {json.dumps(params)}\n"
-        f"Default values: panel_length_mm=2333, panel_width_mm=1134, panel_power_w=600, carport_type=1 (SingleMonoIncline)\n"
+        f"{assumed_note}\n"
+        f"Final params: {json.dumps(params)}\n"
         f"Predictions: power={predictions['total_power_kw']:.1f} kW, "
         f"weight={predictions['total_weight_kg']:.0f} kg, "
         f"cost=£{predictions['total_cost_gbp']:.0f}"
