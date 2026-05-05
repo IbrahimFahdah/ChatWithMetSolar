@@ -176,6 +176,11 @@ def estimate(req: NLRequest):
         raise HTTPException(status_code=422, detail=f"Extraction missing fields: {', '.join(sorted(missing))}")
 
     # area_length_mm must always be provided — no sensible default exists
+    if isinstance(params.get("area_length_mm"), str):
+        try:
+            params["area_length_mm"] = float(params["area_length_mm"])
+        except ValueError:
+            pass
     if not isinstance(params.get("area_length_mm"), (int, float)):
         raise HTTPException(status_code=422, detail="Could not determine carport length from your message. Please specify it (e.g. '50 metres long').")
 
