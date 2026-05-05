@@ -15,12 +15,10 @@ STRUCTURAL_FEATURE_COLS = [
     "number_row",
 ]
 POWER_FEATURE_COLS = STRUCTURAL_FEATURE_COLS + ["panel_power_w"]
-COST_FEATURE_COLS = POWER_FEATURE_COLS + ["delivery_artic_cost_gbp"]
+COST_FEATURE_COLS = STRUCTURAL_FEATURE_COLS + ["delivery_artic_cost_gbp"]
 
 TARGET_COLS = ["total_power_kw", "total_weight_kg", "total_cost_gbp"]
-# weight depends only on structure (dimensions + count), not wattage or delivery
-# power depends on structure + wattage
-# cost depends on everything including delivery
+# power = structure + wattage; weight = structure only; cost = structure + delivery (wattage doesn't affect component pricing)
 FEATURE_COLS_PER_TARGET = [POWER_FEATURE_COLS, STRUCTURAL_FEATURE_COLS, COST_FEATURE_COLS]
 
 HERE = pathlib.Path(__file__).parent
