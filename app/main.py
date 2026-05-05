@@ -16,25 +16,18 @@ MODEL_PATH = HERE / "model" / "model.pkl"
 app = FastAPI(title="MetSolar Carport Estimator")
 app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
 
-_bundle: dict | None = None
-_groq_client: Groq | None = None
-
-
 def get_groq_client() -> Groq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=500, detail="GROQ_API_KEY not set")
-        _groq_client = Groq(api_key=api_key)
-    return _groq_client
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not set")
+    return Groq(api_key=api_key)
 
 
-def get_bundle():
-    global _bundle
-    if _bundle is None:
-        with open(MODEL_PATH, "rb") as f:
-            _bundle = pickle.load(f)
+with open(MODEL_PATH, "rb") as _f:
+    _bundle: dict = pickle.load(_f)
+
+
+def get_bundle() -> dict:
     return _bundle
 
 
