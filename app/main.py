@@ -45,6 +45,7 @@ The user will describe a solar carport installation. Extract these fields and re
   "panel_width_mm": <float, typically 750-2500>,
   "panel_power_w": <float, typically 200-1200>,
   "area_length_mm": <float, the total carport length in mm, typically 9000-300000>,
+  "delivery_area": <string, the UK location name provided by the user, or "unknown" if not specified>,
   "delivery_artic_cost_gbp": <float, based on UK delivery area — use these reference costs: London=450, Birmingham=550, Manchester=600, Leeds=620, Glasgow=900, Edinburgh=950, Cardiff=650, Bristol=500, Exeter=594, Falkirk=1290, Aberdeen=1400, default for unknown UK locations=700>
 }
 Rules:
@@ -52,7 +53,7 @@ Rules:
 - If the user gives area in metres, convert to mm (multiply by 1000)
 - If carport type is ambiguous, default to 1 (SingleMonoIncline)
 - If panel size is not specified, use common defaults: length=2333, width=1134, power=600
-- Always return valid JSON with all 6 fields"""
+- Always return valid JSON with all 7 fields"""
 
 RESPONSE_SYSTEM = """You are a friendly solar carport estimator assistant for MetSolar.
 Given the estimation results, write a short (3-5 sentence) conversational response that:
@@ -128,6 +129,7 @@ def estimate(req: NLRequest):
 
     # derive number_row from carport_type
     params["number_row"] = 6 if params["carport_type"] in (3, 4) else 3
+    delivery_area = params.pop("delivery_area", "unknown")
 
     # detect which fields Groq defaulted (server-side, not inferred by LLM)
     DEFAULTS = {
@@ -136,9 +138,17 @@ def estimate(req: NLRequest):
         "panel_power_w": 600,
         "carport_type": 1,
     }
+    DEFAULT_LABELS = {
+        "panel_length_mm": "panel length 2333mm",
+        "panel_width_mm": "panel width 1134mm",
+        "panel_power_w": "panel power 600W",
+        "carport_type": "carport type SingleMonoIncline",
+    }
     assumed = [
-        f"{k}={params[k]} (default)" for k, v in DEFAULTS.items() if params.get(k) == v
+        DEFAULT_LABELS[k] for k, v in DEFAULTS.items() if params.get(k) == v
     ]
+    if params.get("delivery_area", "unknown").lower() == "unknown":
+        assumed.append("delivery location (not specified, average UK cost assumed)")
 
     # Step 2: run XGBoost prediction
     try:
@@ -175,7 +185,7 @@ def estimate(req: NLRequest):
 
     return {
         "response": friendly,
-        "params_used": {**params, "carport_type_name": carport_names.get(params["carport_type"], "Unknown")},
+        "params_used": {**params, "carport_type_name": carport_names.get(params["carport_type"], "Unknown"), "delivery_area": delivery_area},
         "total_power_kw": round(predictions["total_power_kw"], 2),
         "total_weight_kg": round(predictions["total_weight_kg"], 1),
         "total_cost_gbp": round(predictions["total_cost_gbp"], 2),

@@ -376,7 +376,8 @@
       const p = data.params_used;
       const detail = document.createElement("div");
       detail.className = "params-detail";
-      detail.textContent = `${p.carport_type_name} · ${(p.area_length_mm/1000).toFixed(1)}m · ${p.panel_power_w}W · ${p.panel_length_mm}mm(L) × ${p.panel_width_mm}mm(W) · ${p.number_row} rows`;
+      const location = p.delivery_area && p.delivery_area.toLowerCase() !== "unknown" ? p.delivery_area : "Unknown location";
+      detail.textContent = `${p.carport_type_name} · ${(p.area_length_mm/1000).toFixed(1)}m · ${p.panel_power_w}W · ${p.panel_length_mm}mm(L) × ${p.panel_width_mm}mm(W) · ${p.number_row} rows · ${location}`;
       div.appendChild(detail);
 
       chat.appendChild(div);
