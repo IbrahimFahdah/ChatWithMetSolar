@@ -33,9 +33,10 @@ def get_bundle() -> dict:
 
 def predict_from_params(params: dict) -> dict:
     bundle = get_bundle()
-    row = [params[col] for col in bundle["feature_cols"]]
+    feature_cols = bundle["feature_cols"]
     results = {}
-    for model, target in zip(bundle["models"], bundle["target_cols"]):
+    for model, target, cols in zip(bundle["models"], bundle["target_cols"], feature_cols):
+        row = [params[col] for col in cols]
         results[target] = float(model.predict(np.array([row]))[0])
     return results
 
@@ -94,9 +95,9 @@ Rules:
 - Always return valid JSON with all 6 fields"""
 
 RESPONSE_SYSTEM = """You are a technical estimator for MetSolar solar carports.
-Given the estimation results, write a 3-5 sentence factual summary:
-1. State the key figures: system power (kW), total weight (kg), estimated cost (£)
-2. If defaults were assumed for any unspecified inputs (panel dimensions, power, carport type, delivery location), state them explicitly — e.g. "Standard 600W panels (2333×1134mm) were assumed as panel size was not specified."
+Given the estimation results, write a 3-5 sentence factual summary using Markdown bold (**text**) for all key inputs and outputs:
+1. State the key figures with bold values: system power (kW), total weight (kg), estimated cost (£), carport type, length, and location — e.g. "The **DuoMono** carport, **20 metres** long in **Birmingham**, has an estimated system power of **49.1 kW**, a total weight of **9,152 kg**, and an estimated cost of **£25,538**."
+2. If defaults were assumed for any unspecified inputs (panel dimensions, power, carport type, delivery location), state them explicitly with bold values — e.g. "Standard **550W** panels with dimensions **2333mm × 1134mm** were assumed as panel size was not specified."
 3. Add one brief technical note on installation or grid connection
 Tone: direct and factual, like a written engineering estimate. Do NOT use any enthusiastic openers or filler phrases (forbidden: "I'm thrilled", "Great news", "Excited", "Happy to", "I'm pleased", "Certainly", "Of course"). Do not use bullet points. Do not use first person."""
 
