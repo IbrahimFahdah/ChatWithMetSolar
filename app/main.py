@@ -37,6 +37,22 @@ def predict_from_params(params: dict) -> dict:
     return results
 
 
+DELIVERY_COSTS = {
+    "london": 450,
+    "birmingham": 550,
+    "manchester": 600,
+    "leeds": 620,
+    "glasgow": 900,
+    "edinburgh": 950,
+    "cardiff": 650,
+    "bristol": 500,
+    "exeter": 594,
+    "falkirk": 1290,
+    "aberdeen": 1400,
+}
+DEFAULT_DELIVERY_AREA = "london"
+DEFAULT_DELIVERY_COST = DELIVERY_COSTS[DEFAULT_DELIVERY_AREA]
+
 EXTRACTION_SYSTEM = """You are a solar carport parameter extractor.
 The user will describe a solar carport installation. Extract these fields and return ONLY valid JSON with no extra text:
 {
@@ -45,15 +61,14 @@ The user will describe a solar carport installation. Extract these fields and re
   "panel_width_mm": <float, typically 750-2500>,
   "panel_power_w": <float, typically 200-1200>,
   "area_length_mm": <float, the total carport length in mm, typically 9000-300000>,
-  "delivery_area": <string, the UK location name provided by the user, or "unknown" if not specified>,
-  "delivery_artic_cost_gbp": <float, based on UK delivery area — use these reference costs: London=450, Birmingham=550, Manchester=600, Leeds=620, Glasgow=900, Edinburgh=950, Cardiff=650, Bristol=500, Exeter=594, Falkirk=1290, Aberdeen=1400, default for unknown UK locations=450 (same as London)>
+  "delivery_area": <string, the UK location name provided by the user, or "unknown" if not specified>
 }
 Rules:
 - number_row is derived automatically (3 for type 1 or 2, 6 for type 3 or 4) — do NOT include it
 - If the user gives area in metres, convert to mm (multiply by 1000)
 - If carport type is ambiguous, default to 1 (SingleMonoIncline)
 - If panel size is not specified, use common defaults: length=2333, width=1134, power=600
-- Always return valid JSON with all 7 fields"""
+- Always return valid JSON with all 6 fields"""
 
 RESPONSE_SYSTEM = """You are a friendly solar carport estimator assistant for MetSolar.
 Given the estimation results, write a short (3-5 sentence) conversational response that:
@@ -129,7 +144,17 @@ def estimate(req: NLRequest):
 
     # derive number_row from carport_type
     params["number_row"] = 6 if params["carport_type"] in (3, 4) else 3
-    delivery_area = params.pop("delivery_area", "unknown")
+
+    # server-side delivery cost lookup — never trust Groq with the numbers
+    delivery_area = params.pop("delivery_area", "unknown").strip()
+    delivery_area_key = delivery_area.lower()
+    if delivery_area_key in DELIVERY_COSTS:
+        params["delivery_artic_cost_gbp"] = DELIVERY_COSTS[delivery_area_key]
+        location_defaulted = False
+    else:
+        params["delivery_artic_cost_gbp"] = DEFAULT_DELIVERY_COST
+        delivery_area = DEFAULT_DELIVERY_AREA.capitalize()
+        location_defaulted = True
 
     # detect which fields Groq defaulted (server-side, not inferred by LLM)
     DEFAULTS = {
@@ -147,7 +172,7 @@ def estimate(req: NLRequest):
     assumed = [
         DEFAULT_LABELS[k] for k, v in DEFAULTS.items() if params.get(k) == v
     ]
-    if delivery_area.lower() == "unknown":
+    if location_defaulted:
         assumed.append("delivery location (not specified, London delivery cost used as default)")
 
     # Step 2: run XGBoost prediction
