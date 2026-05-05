@@ -149,7 +149,7 @@ def estimate(req: NLRequest):
     # Step 1: extract structured params from natural language
     try:
         extraction_resp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": EXTRACTION_SYSTEM},
                 {"role": "user", "content": req.message},
@@ -281,7 +281,7 @@ def estimate(req: NLRequest):
     )
     try:
         response_resp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": RESPONSE_SYSTEM},
                 {"role": "user", "content": context},
