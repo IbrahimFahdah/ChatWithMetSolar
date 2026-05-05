@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: solar-estimator
+    runtime: docker
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+    healthCheckPath: /health

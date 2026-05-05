@@ -1,0 +1,6 @@
+.vs/
+.claude/
+__pycache__/
+*.pyc
+*.pyo
+.env
