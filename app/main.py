@@ -147,7 +147,7 @@ def estimate(req: NLRequest):
     assumed = [
         DEFAULT_LABELS[k] for k, v in DEFAULTS.items() if params.get(k) == v
     ]
-    if params.get("delivery_area", "unknown").lower() == "unknown":
+    if delivery_area.lower() == "unknown":
         assumed.append("delivery location (not specified, average UK cost assumed)")
 
     # Step 2: run XGBoost prediction
