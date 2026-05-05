@@ -404,10 +404,12 @@
         removeTyping();
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          const body = await res.text();
+          let detail = `HTTP ${res.status}`;
+          try { detail = JSON.parse(body).detail || body || detail; } catch { detail = body || detail; }
           const div = appendMsg("bot", "");
           div.querySelector(".bubble").className = "bubble error-bubble";
-          div.querySelector(".bubble").textContent = "Error: " + (err.detail || "Something went wrong.");
+          div.querySelector(".bubble").textContent = "Error: " + detail;
         } else {
           appendResult(await res.json());
         }
