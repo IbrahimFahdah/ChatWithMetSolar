@@ -46,7 +46,7 @@ The user will describe a solar carport installation. Extract these fields and re
   "panel_power_w": <float, typically 200-1200>,
   "area_length_mm": <float, the total carport length in mm, typically 9000-300000>,
   "delivery_area": <string, the UK location name provided by the user, or "unknown" if not specified>,
-  "delivery_artic_cost_gbp": <float, based on UK delivery area — use these reference costs: London=450, Birmingham=550, Manchester=600, Leeds=620, Glasgow=900, Edinburgh=950, Cardiff=650, Bristol=500, Exeter=594, Falkirk=1290, Aberdeen=1400, default for unknown UK locations=700>
+  "delivery_artic_cost_gbp": <float, based on UK delivery area — use these reference costs: London=450, Birmingham=550, Manchester=600, Leeds=620, Glasgow=900, Edinburgh=950, Cardiff=650, Bristol=500, Exeter=594, Falkirk=1290, Aberdeen=1400, default for unknown UK locations=450 (same as London)>
 }
 Rules:
 - number_row is derived automatically (3 for type 1 or 2, 6 for type 3 or 4) — do NOT include it
@@ -148,7 +148,7 @@ def estimate(req: NLRequest):
         DEFAULT_LABELS[k] for k, v in DEFAULTS.items() if params.get(k) == v
     ]
     if delivery_area.lower() == "unknown":
-        assumed.append("delivery location (not specified, average UK cost assumed)")
+        assumed.append("delivery location (not specified, London delivery cost used as default)")
 
     # Step 2: run XGBoost prediction
     try:
