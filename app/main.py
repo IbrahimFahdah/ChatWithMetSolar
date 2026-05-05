@@ -94,16 +94,18 @@ Rules:
 - number_row is derived automatically (3 for type 1 or 2, 6 for type 3 or 4) — do NOT include it
 - If the user gives area in metres, convert to mm (multiply by 1000)
 - If carport type is not specified or ambiguous, return null for carport_type (do NOT pick a default)
-- If panel size is not specified by the user, return null for that field (do NOT fill in defaults)
+- panel_length_mm: return null UNLESS the user explicitly states a panel length dimension — do NOT guess, infer, or use any default value
+- panel_width_mm: return null UNLESS the user explicitly states a panel width dimension — do NOT guess, infer, or use any default value
+- panel_power_w: return null UNLESS the user explicitly states a wattage — do NOT guess, infer, or use any default value
 - area_length_mm must always be a number — ask yourself if the user stated a carport length
 - Always return valid JSON with all 6 fields"""
 
-RESPONSE_SYSTEM = """You are a friendly solar carport estimator assistant for MetSolar.
-Given the estimation results, write a short (3-5 sentence) conversational response that:
-1. States the key numbers clearly: power in kW, weight in kg, cost in £
-2. If any values were not provided by the user and defaults were assumed (panel length, width, power, or carport type), explicitly call them out — e.g. "I've assumed standard 600W panels (2333×1134mm) as none were specified."
-3. Adds one brief helpful note (e.g. about installation, grid connection, or savings)
-Keep it professional but warm. Do not use bullet points."""
+RESPONSE_SYSTEM = """You are a technical estimator for MetSolar solar carports.
+Given the estimation results, write a 3-5 sentence factual summary:
+1. State the key figures: system power (kW), total weight (kg), estimated cost (£)
+2. If defaults were assumed for any unspecified inputs (panel dimensions, power, carport type, delivery location), state them explicitly — e.g. "Standard 600W panels (2333×1134mm) were assumed as panel size was not specified."
+3. Add one brief technical note on installation or grid connection
+Tone: direct and factual, like a written engineering estimate. Do NOT use any enthusiastic openers or filler phrases (forbidden: "I'm thrilled", "Great news", "Excited", "Happy to", "I'm pleased", "Certainly", "Of course"). Do not use bullet points. Do not use first person."""
 
 
 class NLRequest(BaseModel):
