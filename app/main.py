@@ -56,8 +56,8 @@ Rules:
 
 RESPONSE_SYSTEM = """You are a friendly solar carport estimator assistant for MetSolar.
 Given the estimation results, write a short (3-5 sentence) conversational response that:
-1. Confirms what was estimated (carport type, approximate size)
-2. States the key numbers clearly: power in kW, weight in kg, cost in £
+1. States the key numbers clearly: power in kW, weight in kg, cost in £
+2. If any values were not provided by the user and defaults were assumed (panel length, width, power, or carport type), explicitly call them out — e.g. "I've assumed standard 600W panels (2333×1134mm) as none were specified."
 3. Adds one brief helpful note (e.g. about installation, grid connection, or savings)
 Keep it professional but warm. Do not use bullet points."""
 
@@ -138,7 +138,8 @@ def estimate(req: NLRequest):
     # Step 3: generate friendly response
     context = (
         f"User asked: {req.message}\n"
-        f"Extracted params: {json.dumps(params)}\n"
+        f"Extracted params (defaults used where user did not specify): {json.dumps(params)}\n"
+        f"Default values: panel_length_mm=2333, panel_width_mm=1134, panel_power_w=600, carport_type=1 (SingleMonoIncline)\n"
         f"Predictions: power={predictions['total_power_kw']:.1f} kW, "
         f"weight={predictions['total_weight_kg']:.0f} kg, "
         f"cost=£{predictions['total_cost_gbp']:.0f}"
