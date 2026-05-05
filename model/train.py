@@ -7,19 +7,21 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 
-PHYSICAL_FEATURE_COLS = [
+STRUCTURAL_FEATURE_COLS = [
     "carport_type",
     "panel_length_mm",
     "panel_width_mm",
-    "panel_power_w",
     "area_length_mm",
     "number_row",
 ]
-COST_FEATURE_COLS = PHYSICAL_FEATURE_COLS + ["delivery_artic_cost_gbp"]
+POWER_FEATURE_COLS = STRUCTURAL_FEATURE_COLS + ["panel_power_w"]
+COST_FEATURE_COLS = POWER_FEATURE_COLS + ["delivery_artic_cost_gbp"]
 
 TARGET_COLS = ["total_power_kw", "total_weight_kg", "total_cost_gbp"]
-# per-target feature columns: power and weight are physical, cost includes delivery
-FEATURE_COLS_PER_TARGET = [PHYSICAL_FEATURE_COLS, PHYSICAL_FEATURE_COLS, COST_FEATURE_COLS]
+# weight depends only on structure (dimensions + count), not wattage or delivery
+# power depends on structure + wattage
+# cost depends on everything including delivery
+FEATURE_COLS_PER_TARGET = [POWER_FEATURE_COLS, STRUCTURAL_FEATURE_COLS, COST_FEATURE_COLS]
 
 HERE = pathlib.Path(__file__).parent
 CSV_PATH = HERE / "carport_training_data.csv"
